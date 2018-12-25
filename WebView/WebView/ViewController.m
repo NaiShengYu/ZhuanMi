@@ -47,16 +47,16 @@
     }
 
     
-    NSArray *cookies =[[NSUserDefaults standardUserDefaults]  objectForKey:@"cookies"];
-    if (cookies != nil) {
-        NSMutableDictionary *cookieProperties = [NSMutableDictionary dictionary];
-        [cookieProperties setObject:[cookies objectAtIndex:0] forKey:NSHTTPCookieName];
-        [cookieProperties setObject:[cookies objectAtIndex:1] forKey:NSHTTPCookieValue];
-        [cookieProperties setObject:[cookies objectAtIndex:3] forKey:NSHTTPCookieDomain];
-        [cookieProperties setObject:[cookies objectAtIndex:4] forKey:NSHTTPCookiePath];
-        NSHTTPCookie *cookieuser = [NSHTTPCookie cookieWithProperties:cookieProperties];
-        [[NSHTTPCookieStorage sharedHTTPCookieStorage]  setCookie:cookieuser];
-    }
+//    NSArray *cookies =[[NSUserDefaults standardUserDefaults]  objectForKey:@"cookies"];
+//    if (cookies != nil) {
+//        NSMutableDictionary *cookieProperties = [NSMutableDictionary dictionary];
+//        [cookieProperties setObject:[cookies objectAtIndex:0] forKey:NSHTTPCookieName];
+//        [cookieProperties setObject:[cookies objectAtIndex:1] forKey:NSHTTPCookieValue];
+//        [cookieProperties setObject:[cookies objectAtIndex:3] forKey:NSHTTPCookieDomain];
+//        [cookieProperties setObject:[cookies objectAtIndex:4] forKey:NSHTTPCookiePath];
+//        NSHTTPCookie *cookieuser = [NSHTTPCookie cookieWithProperties:cookieProperties];
+//        [[NSHTTPCookieStorage sharedHTTPCookieStorage]  setCookie:cookieuser];
+//    }
     
     
     [[AFNetworkReachabilityManager sharedManager] startMonitoring];
@@ -64,7 +64,7 @@
         if (status ==AFNetworkReachabilityStatusNotReachable) {
             NSLog(@"网络连接不上");
         }else{
-            [_webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://xqy.jianxinnet.com/dk"]]];
+            [_webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:@"http://xqy.shanyouxing.cn"]]];
         }}];
     
     _webView.delegate =self;
@@ -96,35 +96,61 @@
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView{
     NSLog(@"结束调用了");
-    
-    NSArray *nCookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies];
-    for (NSHTTPCookie *cookie in nCookies){
-        if ([cookie isKindOfClass:[NSHTTPCookie class]]){
-
-            if ([cookie.name isEqualToString:@"PHPSESSID"]) {
-                NSNumber *sessionOnly =[NSNumber numberWithBool:cookie.sessionOnly];
-                NSNumber *isSecure = [NSNumber numberWithBool:cookie.isSecure];
-                NSArray *cookies = [NSArray arrayWithObjects:cookie.name, cookie.value, sessionOnly, cookie.domain, cookie.path, isSecure, nil];
-                [[NSUserDefaults standardUserDefaults] setObject:cookies forKey:@"cookies"];
-                break;
-            }
-        }
-    }
+//    [[NSUserDefaults standardUserDefaults] removeObjectForKey:@"cookies"];
+//    NSArray *nCookies = [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies];
+//    for (NSHTTPCookie *cookie in nCookies){
+//        if ([cookie isKindOfClass:[NSHTTPCookie class]]){
+//
+//            if ([cookie.name isEqualToString:@"PHPSESSID"]) {
+//                NSNumber *sessionOnly =[NSNumber numberWithBool:cookie.sessionOnly];
+//                NSNumber *isSecure = [NSNumber numberWithBool:cookie.isSecure];
+//                NSArray *cookies = [NSArray arrayWithObjects:cookie.name, cookie.value, sessionOnly, cookie.domain, cookie.path, isSecure, nil];
+//                [[NSUserDefaults standardUserDefaults] setObject:cookies forKey:@"cookies"];
+//                break;
+//            }
+//        }
+//    }
     
     
     
     JSContext *context =[webView valueForKeyPath:@"documentView.webView.mainFrame.javaScriptContext"];
     JSAndOCTask *testJO=[JSAndOCTask new];
     __weak __typeof(&*self)blockSelf = self;
-  
+    testJO.apiPayBlock = ^(NSString *url) {
+        [blockSelf zhifubaoPay:url];
+    };
+    testJO.wxshare = ^(NSString *txt) {
+        [[NSOperationQueue mainQueue] addOperationWithBlock:^{//在主线程中调用
+            [blockSelf savePhoto];
+            [blockSelf callWeChat];
+        }];
+    };
     context[@"testobject"] =testJO;
     
-    
-    [self savePhoto];
 }
 
 
-
+- (void)zhifubaoPay:(NSString *)url{
+    //支付
+    [[NSOperationQueue mainQueue] addOperationWithBlock:^{//在主线程中调用
+        // UI更新代码
+        [[AlipaySDK defaultService] payOrder:url fromScheme:@"XXB2018" callback:^(NSDictionary *resultDic) {
+            if ([resultDic[@"resultStatus"] integerValue]==9000) {
+            }
+        }];
+    }];
+}
+- (void)wxPaySuccess{
+    NSLog(@"成功了");
+    NSString *pay =@"pay_back()";
+    NSLog(@"成功后调用：%@",pay);
+    [self.webView stringByEvaluatingJavaScriptFromString:pay];
+    
+}
+- (void)wxPayFails{
+    NSLog(@"失败了");
+    [self.webView stringByEvaluatingJavaScriptFromString:@"pay_back()"];
+}
 
 
 
@@ -160,46 +186,6 @@
     
 }
 
-- (UIImage *)screenshot
-{
-    CGSize imageSize = CGSizeZero;
-    
-    UIInterfaceOrientation orientation = [UIApplication sharedApplication].statusBarOrientation;
-    if (UIInterfaceOrientationIsPortrait(orientation)) {
-        imageSize = [UIScreen mainScreen].bounds.size;
-    } else {
-        imageSize = CGSizeMake([UIScreen mainScreen].bounds.size.height, [UIScreen mainScreen].bounds.size.width);
-    }
-    
-    UIGraphicsBeginImageContextWithOptions(imageSize, NO, 0);
-    CGContextRef context = UIGraphicsGetCurrentContext();
-    for (UIWindow *window in [[UIApplication sharedApplication] windows]) {
-        CGContextSaveGState(context);
-        CGContextTranslateCTM(context, window.center.x, window.center.y);
-        CGContextConcatCTM(context, window.transform);
-        CGContextTranslateCTM(context, -window.bounds.size.width * window.layer.anchorPoint.x, -window.bounds.size.height * window.layer.anchorPoint.y);
-        if (orientation == UIInterfaceOrientationLandscapeLeft) {
-            CGContextRotateCTM(context, M_PI_2);
-            CGContextTranslateCTM(context, 0, -imageSize.width);
-        } else if (orientation == UIInterfaceOrientationLandscapeRight) {
-            CGContextRotateCTM(context, -M_PI_2);
-            CGContextTranslateCTM(context, -imageSize.height, 0);
-        } else if (orientation == UIInterfaceOrientationPortraitUpsideDown) {
-            CGContextRotateCTM(context, M_PI);
-            CGContextTranslateCTM(context, -imageSize.width, -imageSize.height);
-        }
-        if ([window respondsToSelector:@selector(drawViewHierarchyInRect:afterScreenUpdates:)]) {
-            [window drawViewHierarchyInRect:window.bounds afterScreenUpdates:YES];
-        } else {
-            [window.layer renderInContext:context];
-        }
-        CGContextRestoreGState(context);
-    }
-    
-    UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-    UIGraphicsEndImageContext();
-    return image;
-}
 
 // 保存图片到相册功能，ALAssetsLibraryiOS9.0 以后用photoliabary 替代，
 -(void)savePhoto

@@ -16,12 +16,30 @@
 @end
 @implementation JSAndOCTask
 
-- (void)wxshare:(NSString *)ID{
+- (void)wxshare:(NSString *)txt{
   
     if (self.wxshare) {
-        self.wxshare(ID);
+        self.wxshare(txt);
     }
+    UIPasteboard *board = [UIPasteboard generalPasteboard];
+    board.string = txt;
+
+    
 }
+
+- (void)wxshareapp:(NSString *)txt{
+    if (self.wxshare) {
+        self.wxshare(txt);
+    }
+    UIPasteboard *board = [UIPasteboard generalPasteboard];
+    board.string = txt;
+    
+}
+
+
+
+
+
 
 - (void)share:(NSString *)link AndImg:(NSString *)img AndDesc:(NSString *)desc AndTitle:(NSString *)title{
  
@@ -98,9 +116,7 @@
     } @finally {
         
     }
-   
-    
-    
+ 
 }
 
 @end

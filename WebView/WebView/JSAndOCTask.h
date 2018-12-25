@@ -20,14 +20,20 @@
 //微信支付
 - (void)wxpay:(NSString *)ID;
 
-//微信分享
-- (void)wxshare:(NSString *)ID;
 
 - (void)scan;
 
 - (void)startLocation;
 
 - (void)dhmap:(NSString *)lacation;
+
+
+//微信分享
+- (void)wxshareapp:(NSString *)txt;
+//微信分享
+- (void)wxshare:(NSString *)txt;
+
+
 
 @end
 @interface JSAndOCTask : NSObject <TestJSObjectProtocol>
