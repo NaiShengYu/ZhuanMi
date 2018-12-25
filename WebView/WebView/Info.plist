@@ -33,7 +33,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>AIRobot2018</string>
+				<string>XXB2018</string>
 			</array>
 		</dict>
 	</array>
@@ -62,11 +62,11 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>AI机器人为了可以扫描二维码直接付款需要访问您的相机</string>
+	<string>欣鑫宝为了可以扫描二维码直接付款需要访问您的相机</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>AI机器人需要获取您的当前位置</string>
+	<string>欣鑫宝需要获取您的当前位置</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
-	<string>保存图片</string>
+	<string>欣鑫宝要保存分享的图片</string>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
